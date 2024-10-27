@@ -20,7 +20,7 @@
 package helm
 
 import (
-    "helm.sh/helm/v3/pkg/chart"
+	"helm.sh/helm/v3/pkg/chart"
 )
 
 // Filter for dependencies.
@@ -30,18 +30,22 @@ type Filter struct {
 }
 
 // FilterDependencies ...
-func (f *Filter) FilterDependencies(dependencies []*chart.Dependency) []*chart.Dependency {
+func (f *Filter) FilterDependencies(
+	dependencies []*chart.Dependency,
+) []*chart.Dependency {
 	var filteredDeps []*chart.Dependency
 	for _, dep := range dependencies {
 		keep := true
 
 		// Filter by repositories.
-		if f.Repositories != nil && len(f.Repositories) > 0 && !stringSliceContains(f.Repositories, dep.Repository) {
+		if f.Repositories != nil && len(f.Repositories) > 0 &&
+			!stringSliceContains(f.Repositories, dep.Repository) {
 			keep = false
 		}
 
 		// Filter by dependency name.
-		if f.DependencyNames != nil && len(f.DependencyNames) > 0 && !stringSliceContains(f.DependencyNames, dep.Name) {
+		if f.DependencyNames != nil && len(f.DependencyNames) > 0 &&
+			!stringSliceContains(f.DependencyNames, dep.Name) {
 			keep = false
 		}
 

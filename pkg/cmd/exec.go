@@ -75,7 +75,8 @@ func (c *Command) Run(args ...string) (string, error) {
 // verify checks if the command is installed.
 func (c *Command) verify() error {
 	res, err := c.Run("version")
-	if err != nil && strings.Contains(err.Error(), "not found") || strings.Contains(res, "not found") {
+	if err != nil && strings.Contains(err.Error(), "not found") ||
+		strings.Contains(res, "not found") {
 		return errCmdNotInstalled
 	}
 

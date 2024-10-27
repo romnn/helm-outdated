@@ -28,7 +28,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-    log "github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 
 	"helm.sh/helm/v3/pkg/chart"
 )
@@ -39,7 +39,7 @@ import (
 // developer intent.
 type Requirements struct {
 	Dependencies []*chart.Dependency `json:"dependencies,flow,inline"`
-	test int
+	test         int
 }
 
 func toYamlWithIndent(in interface{}, indent int) ([]byte, error) {
@@ -67,8 +67,7 @@ func toYamlWithIndent(in interface{}, indent int) ([]byte, error) {
 
 func writeRequirements(chartPath string, reqs []*chart.Dependency, indent int) error {
 
-
-	data, err := toYamlWithIndent(&Requirements{Dependencies:   reqs,}, indent)
+	data, err := toYamlWithIndent(&Requirements{Dependencies: reqs}, indent)
 	if err != nil {
 		return err
 	}

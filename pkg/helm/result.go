@@ -21,8 +21,9 @@ package helm
 
 import (
 	"sort"
-    "helm.sh/helm/v3/pkg/chart"
+
 	"github.com/Masterminds/semver"
+	"helm.sh/helm/v3/pkg/chart"
 )
 
 // Result ...

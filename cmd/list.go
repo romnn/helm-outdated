@@ -21,8 +21,9 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"path/filepath"
+
+	"github.com/pkg/errors"
 
 	log "github.com/sirupsen/logrus"
 
@@ -96,13 +97,18 @@ func newListOutdatedDependenciesCmd() *cobra.Command {
 	}
 
 	addCommonFlags(cmd)
-	cmd.Flags().BoolVarP(&l.failOnOutdatedDependencies, "fail-on-outdated-dependencies", "", false, "Fail if any dependency is outdated. (exit code 1)")
+	cmd.Flags().
+		BoolVarP(&l.failOnOutdatedDependencies, "fail-on-outdated-dependencies", "", false, "Fail if any dependency is outdated. (exit code 1)")
 
 	return cmd
 }
 
 func (l *listCmd) list() error {
-	outdatedDeps, err := helm.ListOutdatedDependencies(l.chartPath, cli.New(), l.dependencyFilter)
+	outdatedDeps, err := helm.ListOutdatedDependencies(
+		l.chartPath,
+		cli.New(),
+		l.dependencyFilter,
+	)
 	if err != nil {
 		return err
 	}

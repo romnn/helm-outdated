@@ -48,7 +48,11 @@ const (
 )
 
 // ListOutdatedDependencies returns a list of outdated dependencies of the given chart.
-func ListOutdatedDependencies(chartPath string, settings *cli.EnvSettings, dependencyFilter *Filter) ([]*Result, error) {
+func ListOutdatedDependencies(
+	chartPath string,
+	settings *cli.EnvSettings,
+	dependencyFilter *Filter,
+) ([]*Result, error) {
 	chartDeps, err := loadDependencies(chartPath, dependencyFilter)
 	if err != nil {
 		// 		if err == chartutil.ErrRequirementsNotFound {
@@ -67,13 +71,21 @@ func ListOutdatedDependencies(chartPath string, settings *cli.EnvSettings, depen
 	for _, dep := range chartDeps {
 		depVersion, err := semver.NewVersion(dep.Version)
 		if err != nil {
-			fmt.Printf("Error creating semVersion for dependency %s: %s", dep.Name, err.Error())
+			fmt.Printf(
+				"Error creating semVersion for dependency %s: %s",
+				dep.Name,
+				err.Error(),
+			)
 			continue
 		}
 
 		latestVersion, err := findLatestVersionOfDependency(dep, settings)
 		if err != nil {
-			fmt.Printf("Error getting latest version of %s: %s\n", dep.Name, err.Error())
+			fmt.Printf(
+				"Error getting latest version of %s: %s\n",
+				dep.Name,
+				err.Error(),
+			)
 			continue
 		}
 
@@ -107,7 +119,9 @@ func UpdateDependencies(chartPath string, reqsToUpdate []*Result, indent int) er
 	for _, newDep := range reqsToUpdate {
 		for _, oldDep := range reqs {
 			if newDep.Name == oldDep.Name && newDep.Repository == newDep.Repository {
-				log.Debug("Updating dependency " + oldDep.Name + " from " + oldDep.Version + " in " + newDep.LatestVersion.String())
+				log.Debug(
+					"Updating dependency " + oldDep.Name + " from " + oldDep.Version + " in " + newDep.LatestVersion.String(),
+				)
 				oldDep.Version = newDep.LatestVersion.String()
 			}
 		}
@@ -169,7 +183,11 @@ func loadDependencies(chartPath string, f *Filter) ([]*chart.Dependency, error) 
 	var deps []*chart.Dependency
 	for _, d := range reqs {
 		if strings.Contains(d.Repository, filePrefix) {
-			d.Repository = fmt.Sprintf("%s%s", filePrefix, filepath.Join(chartPath, strings.TrimPrefix(d.Repository, filePrefix)))
+			d.Repository = fmt.Sprintf(
+				"%s%s",
+				filePrefix,
+				filepath.Join(chartPath, strings.TrimPrefix(d.Repository, filePrefix)),
+			)
 		}
 		deps = append(deps, d)
 	}
@@ -179,7 +197,10 @@ func loadDependencies(chartPath string, f *Filter) ([]*chart.Dependency, error) 
 }
 
 // findLatestVersionOfDependency returns the latest version of the given dependency in the repository.
-func findLatestVersionOfDependency(dep *chart.Dependency, settings *cli.EnvSettings) (*semver.Version, error) {
+func findLatestVersionOfDependency(
+	dep *chart.Dependency,
+	settings *cli.EnvSettings,
+) (*semver.Version, error) {
 	// Handle local dependencies.
 	if strings.Contains(dep.Repository, filePrefix) {
 		c, err := loader.Load(strings.TrimPrefix(dep.Repository, filePrefix))
@@ -190,7 +211,11 @@ func findLatestVersionOfDependency(dep *chart.Dependency, settings *cli.EnvSetti
 	}
 
 	if strings.Contains(dep.Repository, ociPrefix) {
-		repoUrl := fmt.Sprintf("%s/%s", strings.TrimPrefix(dep.Repository, ociPrefix), dep.Name)
+		repoUrl := fmt.Sprintf(
+			"%s/%s",
+			strings.TrimPrefix(dep.Repository, ociPrefix),
+			dep.Name,
+		)
 		repo, err := remote.NewRepository(repoUrl)
 		if err != nil {
 			return nil, err
@@ -210,7 +235,10 @@ func findLatestVersionOfDependency(dep *chart.Dependency, settings *cli.EnvSetti
 		}
 
 		if len(repoVersions) < 1 {
-			return nil, fmt.Errorf("repository %s does not have any valid semver tags", repoUrl)
+			return nil, fmt.Errorf(
+				"repository %s does not have any valid semver tags",
+				repoUrl,
+			)
 		}
 
 		// find latest version
@@ -225,8 +253,17 @@ func findLatestVersionOfDependency(dep *chart.Dependency, settings *cli.EnvSetti
 	}
 
 	// Read the index file for the repository to get chart information and return chart URL
-	fmt.Printf("Loading cache index file for repository %s from cache dir %s\n", dep.Repository, settings.RepositoryCache)
-	repoIndex, err := repo.LoadIndexFile(filepath.Join(settings.RepositoryCache, helmpath.CacheIndexFile(normalizeRepoName(dep.Repository))))
+	fmt.Printf(
+		"Loading cache index file for repository %s from cache dir %s\n",
+		dep.Repository,
+		settings.RepositoryCache,
+	)
+	repoIndex, err := repo.LoadIndexFile(
+		filepath.Join(
+			settings.RepositoryCache,
+			helmpath.CacheIndexFile(normalizeRepoName(dep.Repository)),
+		),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -247,10 +284,14 @@ func sortRequirementsAlphabetically(reqs []*chart.Dependency) []*chart.Dependenc
 	return reqs
 }
 
-func parallelRepoUpdate(chartDeps []*chart.Dependency, settings *cli.EnvSettings) error {
+func parallelRepoUpdate(
+	chartDeps []*chart.Dependency,
+	settings *cli.EnvSettings,
+) error {
 	var repos []string
 	for _, dep := range chartDeps {
-		if !stringSliceContains(repos, dep.Repository) && !strings.Contains(dep.Repository, filePrefix) {
+		if !stringSliceContains(repos, dep.Repository) &&
+			!strings.Contains(dep.Repository, filePrefix) {
 			repos = append(repos, dep.Repository)
 		}
 	}
@@ -270,7 +311,12 @@ func parallelRepoUpdate(chartDeps []*chart.Dependency, settings *cli.EnvSettings
 		wg.Add(1)
 		go func(r *repo.ChartRepository) {
 			if idx, err := r.DownloadIndexFile(); err != nil {
-				fmt.Printf("unable to get an update from the %q chart repository (%s):\n\t%s\n", r.Config.Name, r.Config.URL, err)
+				fmt.Printf(
+					"unable to get an update from the %q chart repository (%s):\n\t%s\n",
+					r.Config.Name,
+					r.Config.URL,
+					err,
+				)
 			} else {
 				fmt.Printf("successfully got an update from the %q chart repository, updated %s\n", r.Config.URL, idx)
 			}

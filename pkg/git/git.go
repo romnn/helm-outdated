@@ -29,7 +29,7 @@ import (
 )
 
 var (
-	errGitNoRemote = errors.New("git remote has no remote configured")
+	errGitNoRemote   = errors.New("git remote has no remote configured")
 	errGithubNoToken = errors.New("GITHUB_TOKEN environment variable no set")
 )
 

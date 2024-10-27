@@ -110,20 +110,30 @@ func newUpdateOutdatedDependenciesCmd() *cobra.Command {
 	}
 
 	addCommonFlags(cmd)
-	cmd.Flags().BoolVarP(&u.isIncrementChartVersion, "increment-chart-version", "", false, "Increment the version of the Helm chart if requirements are updated.")
-	cmd.Flags().IntVarP(&u.indent, "indent", "", 4, "Indent to use when writing the requirements.yaml .")
+	cmd.Flags().
+		BoolVarP(&u.isIncrementChartVersion, "increment-chart-version", "", false, "Increment the version of the Helm chart if requirements are updated.")
+	cmd.Flags().
+		IntVarP(&u.indent, "indent", "", 4, "Indent to use when writing the requirements.yaml .")
 
 	// **Experimental** Update dependencies of the given chart, commit and push to upstream using git.
-	cmd.Flags().BoolVar(&u.isAutoUpdate, "auto-update", false, "**Experimental** Update dependencies of the given chart, commit and push to upstream using git.")
-	cmd.Flags().StringVar(&u.authorName, "author-name", "", "The name of the author and committer to be used when auto update is enabled.")
-	cmd.Flags().StringVar(&u.authorEmail, "author-email", "", "The email of the author and committer to be used when auto update is enabled.")
-	cmd.Flags().BoolVar(&u.isOnlyPullRequest, "only-pull-requests", false, "Only use pull requests. Do not commit minor changes to master branch.")
+	cmd.Flags().
+		BoolVar(&u.isAutoUpdate, "auto-update", false, "**Experimental** Update dependencies of the given chart, commit and push to upstream using git.")
+	cmd.Flags().
+		StringVar(&u.authorName, "author-name", "", "The name of the author and committer to be used when auto update is enabled.")
+	cmd.Flags().
+		StringVar(&u.authorEmail, "author-email", "", "The email of the author and committer to be used when auto update is enabled.")
+	cmd.Flags().
+		BoolVar(&u.isOnlyPullRequest, "only-pull-requests", false, "Only use pull requests. Do not commit minor changes to master branch.")
 
 	return cmd
 }
 
 func (u *updateCmd) update() error {
-	outdatedDeps, err := helm.ListOutdatedDependencies(u.chartPath, cli.New(), u.dependencyFilter)
+	outdatedDeps, err := helm.ListOutdatedDependencies(
+		u.chartPath,
+		cli.New(),
+		u.dependencyFilter,
+	)
 	if err != nil {
 		return err
 	}
@@ -157,7 +167,9 @@ func (u *updateCmd) update() error {
 	maxIncType := helm.IncTypes.Patch
 	depNames := make([]string, len(outdatedDeps))
 	for idx, dep := range outdatedDeps {
-		if i := helm.GetIncType(dep.CurrentVersion, dep.LatestVersion); maxIncType.IsGreater(i) {
+		if i := helm.GetIncType(dep.CurrentVersion, dep.LatestVersion); maxIncType.IsGreater(
+			i,
+		) {
 			maxIncType = i
 		}
 		depName := dep.Alias
@@ -172,10 +184,15 @@ func (u *updateCmd) update() error {
 		return err
 	}
 
-	commitMessage := fmt.Sprintf("[%s] updated dependency to %s", chartName, strings.Join(depNames, ", "))
+	commitMessage := fmt.Sprintf(
+		"[%s] updated dependency to %s",
+		chartName,
+		strings.Join(depNames, ", "),
+	)
 
 	// If potential breaking changes are expected, use a pull request.
-	if u.isOnlyPullRequest || maxIncType == helm.IncTypes.Major || maxIncType == helm.IncTypes.Minor {
+	if u.isOnlyPullRequest || maxIncType == helm.IncTypes.Major ||
+		maxIncType == helm.IncTypes.Minor {
 		return u.upstreamMajorChanges(commitMessage, chartName)
 	}
 
@@ -243,7 +260,11 @@ func (u *updateCmd) upstreamMajorChanges(commitMessage, chartName string) error 
 		return err
 	}
 
-	res, err = hub.OpenPullRequestToMaster(branchName, fmt.Sprintf("[%s] updating dependencies", chartName), commitMessage)
+	res, err = hub.OpenPullRequestToMaster(
+		branchName,
+		fmt.Sprintf("[%s] updating dependencies", chartName),
+		commitMessage,
+	)
 	fmt.Println(res)
 	return err
 }

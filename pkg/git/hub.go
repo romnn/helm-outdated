@@ -46,7 +46,9 @@ func NewHub(path string) (*Hub, error) {
 }
 
 // OpenPullRequestToMaster opens a new pull request on github.com to master branch.
-func (h *Hub) OpenPullRequestToMaster(fromBranch, title, description string) (string, error) {
+func (h *Hub) OpenPullRequestToMaster(
+	fromBranch, title, description string,
+) (string, error) {
 	res, err := h.Run(
 		"pull-request",
 		"--no-edit",
