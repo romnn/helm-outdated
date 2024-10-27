@@ -24,11 +24,11 @@ import (
 	"github.com/pkg/errors"
 	"path/filepath"
 
-    log "github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/gosuri/uitable"
-	"github.com/uniknow/helm-outdated/pkg/helm"
 	"github.com/spf13/cobra"
+	"github.com/uniknow/helm-outdated/pkg/helm"
 
 	"helm.sh/helm/v3/pkg/cli"
 )
@@ -42,11 +42,11 @@ Examples:
 `
 
 type listCmd struct {
-//     settings
+	//     settings
 	maxColumnWidth             uint
 	chartPath                  string
 	failOnOutdatedDependencies bool
-	dependencyFilter *helm.Filter
+	dependencyFilter           *helm.Filter
 }
 
 func newListOutdatedDependenciesCmd() *cobra.Command {
@@ -71,13 +71,13 @@ func newListOutdatedDependenciesCmd() *cobra.Command {
 			}
 			l.chartPath = path
 
-            if debug, err := cmd.Flags().GetBool("debug"); err == nil {
-                if debug == true {
-                    log.SetLevel(log.DebugLevel)
-                } else {
-                    log.SetLevel(log.InfoLevel)
-                }
-            }
+			if debug, err := cmd.Flags().GetBool("debug"); err == nil {
+				if debug == true {
+					log.SetLevel(log.DebugLevel)
+				} else {
+					log.SetLevel(log.InfoLevel)
+				}
+			}
 
 			if maxColumnWidth, err := cmd.Flags().GetUint("max-column-width"); err == nil {
 				l.maxColumnWidth = maxColumnWidth

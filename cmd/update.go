@@ -25,13 +25,12 @@ import (
 	"strings"
 	"time"
 
-
-    log "github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/gosuri/uitable"
+	"github.com/spf13/cobra"
 	"github.com/uniknow/helm-outdated/pkg/git"
 	"github.com/uniknow/helm-outdated/pkg/helm"
-	"github.com/spf13/cobra"
 
 	"helm.sh/helm/v3/pkg/cli"
 )
@@ -75,13 +74,13 @@ func newUpdateOutdatedDependenciesCmd() *cobra.Command {
 		Long:         updateLongUsage,
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-            if debug, err := cmd.Flags().GetBool("debug"); err == nil {
-                if debug == true {
-                    log.SetLevel(log.DebugLevel)
-                } else {
-                    log.SetLevel(log.InfoLevel)
-                }
-            }
+			if debug, err := cmd.Flags().GetBool("debug"); err == nil {
+				if debug == true {
+					log.SetLevel(log.DebugLevel)
+				} else {
+					log.SetLevel(log.InfoLevel)
+				}
+			}
 
 			if maxColumnWidth, err := cmd.Flags().GetUint("max-column-width"); err == nil {
 				u.maxColumnWidth = maxColumnWidth
@@ -136,9 +135,9 @@ func (u *updateCmd) update() error {
 	fmt.Println(u.formatResults(outdatedDeps))
 
 	if u.isIncrementChartVersion || u.isAutoUpdate {
-	    fmt.Println("UPDATING CHART VERSION")
+		fmt.Println("UPDATING CHART VERSION")
 		if err = helm.IncrementChartVersion(u.chartPath, helm.IncTypes.Patch); err != nil {
-		    fmt.Println("ERROR OCCURRED WHILE UPDATING CHART VERSION")
+			fmt.Println("ERROR OCCURRED WHILE UPDATING CHART VERSION")
 			return err
 		}
 	}
@@ -165,7 +164,7 @@ func (u *updateCmd) update() error {
 		if depName == "" {
 			depName = dep.Name
 		}
-		depNames[idx] = fmt.Sprintf("%s@%s",  depName, dep.LatestVersion)
+		depNames[idx] = fmt.Sprintf("%s@%s", depName, dep.LatestVersion)
 	}
 
 	chartName, err := helm.GetChartName(u.chartPath)

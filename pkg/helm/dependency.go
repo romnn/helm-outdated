@@ -20,6 +20,7 @@
 package helm
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 	"sort"
@@ -28,34 +29,36 @@ import (
 
 	"github.com/Masterminds/semver"
 
-    log "github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 
-	"helm.sh/helm/v3/pkg/getter"
-	"helm.sh/helm/v3/pkg/repo"
 	"helm.sh/helm/v3/pkg/chart"
-    "helm.sh/helm/v3/pkg/chart/loader"
-    "helm.sh/helm/v3/pkg/cli"
+	"helm.sh/helm/v3/pkg/chart/loader"
+	"helm.sh/helm/v3/pkg/cli"
+	"helm.sh/helm/v3/pkg/getter"
 	"helm.sh/helm/v3/pkg/helmpath"
+	"helm.sh/helm/v3/pkg/repo"
+	"oras.land/oras-go/v2/registry/remote"
 )
 
 const (
 	requirementsName  = "requirements.yaml"
 	chartMetadataName = "Chart.yaml"
 	filePrefix        = "file://"
+	ociPrefix         = "oci://"
 )
 
 // ListOutdatedDependencies returns a list of outdated dependencies of the given chart.
 func ListOutdatedDependencies(chartPath string, settings *cli.EnvSettings, dependencyFilter *Filter) ([]*Result, error) {
 	chartDeps, err := loadDependencies(chartPath, dependencyFilter)
 	if err != nil {
-// 		if err == chartutil.ErrRequirementsNotFound {
-// 			fmt.Printf("Chart %v has no requirements.\n", chartPath)
-// 			return nil, nil
-// 		}
+		// 		if err == chartutil.ErrRequirementsNotFound {
+		// 			fmt.Printf("Chart %v has no requirements.\n", chartPath)
+		// 			return nil, nil
+		// 		}
 		return nil, err
 	}
 
-    // Update local cached repositories
+	// Update local cached repositories
 	if err = parallelRepoUpdate(chartDeps, settings); err != nil {
 		return nil, err
 	}
@@ -93,7 +96,7 @@ func ListOutdatedDependencies(chartPath string, settings *cli.EnvSettings, depen
 
 // UpdateDependencies updates the dependencies of the given chart.
 func UpdateDependencies(chartPath string, reqsToUpdate []*Result, indent int) error {
-    log.Info("Updating outdated dependencies of chart '" + chartPath +"''")
+	log.Info("Updating outdated dependencies of chart '" + chartPath + "''")
 	c, err := loader.Load(chartPath)
 	if err != nil {
 		return err
@@ -104,7 +107,7 @@ func UpdateDependencies(chartPath string, reqsToUpdate []*Result, indent int) er
 	for _, newDep := range reqsToUpdate {
 		for _, oldDep := range reqs {
 			if newDep.Name == oldDep.Name && newDep.Repository == newDep.Repository {
-			    log.Debug("Updating dependency " + oldDep.Name + " from " + oldDep.Version + " in " + newDep.LatestVersion.String())
+				log.Debug("Updating dependency " + oldDep.Name + " from " + oldDep.Version + " in " + newDep.LatestVersion.String())
 				oldDep.Version = newDep.LatestVersion.String()
 			}
 		}
@@ -115,7 +118,7 @@ func UpdateDependencies(chartPath string, reqsToUpdate []*Result, indent int) er
 		return err
 	}
 
-    return nil;
+	return nil
 }
 
 // IncrementChart version increments the patch version of the Chart.
@@ -186,6 +189,41 @@ func findLatestVersionOfDependency(dep *chart.Dependency, settings *cli.EnvSetti
 		return semver.NewVersion(c.Metadata.Version)
 	}
 
+	if strings.Contains(dep.Repository, ociPrefix) {
+		repoUrl := fmt.Sprintf("%s/%s", strings.TrimPrefix(dep.Repository, ociPrefix), dep.Name)
+		repo, err := remote.NewRepository(repoUrl)
+		if err != nil {
+			return nil, err
+		}
+		var repoVersions []*semver.Version
+		ctx := context.Background()
+		err = repo.Tags(ctx, "", func(tags []string) error {
+			for _, tag := range tags {
+				if version, err := semver.NewVersion(tag); err == nil {
+					repoVersions = append(repoVersions, version)
+				}
+			}
+			return err
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		if len(repoVersions) < 1 {
+			return nil, fmt.Errorf("repository %s does not have any valid semver tags", repoUrl)
+		}
+
+		// find latest version
+		latestVersion := repoVersions[0]
+		for _, version := range repoVersions {
+			if version.GreaterThan(latestVersion) {
+				latestVersion = version
+			}
+		}
+
+		return latestVersion, nil
+	}
+
 	// Read the index file for the repository to get chart information and return chart URL
 	fmt.Printf("Loading cache index file for repository %s from cache dir %s\n", dep.Repository, settings.RepositoryCache)
 	repoIndex, err := repo.LoadIndexFile(filepath.Join(settings.RepositoryCache, helmpath.CacheIndexFile(normalizeRepoName(dep.Repository))))
@@ -231,7 +269,7 @@ func parallelRepoUpdate(chartDeps []*chart.Dependency, settings *cli.EnvSettings
 
 		wg.Add(1)
 		go func(r *repo.ChartRepository) {
-			if idx,err := r.DownloadIndexFile(); err != nil {
+			if idx, err := r.DownloadIndexFile(); err != nil {
 				fmt.Printf("unable to get an update from the %q chart repository (%s):\n\t%s\n", r.Config.Name, r.Config.URL, err)
 			} else {
 				fmt.Printf("successfully got an update from the %q chart repository, updated %s\n", r.Config.URL, idx)
