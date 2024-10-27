@@ -1,3 +1,10 @@
+.DS_Store
+
+.idea/
+
+# binary
+/helm-outdated
+
 tmp/**
 bin/**
 dist/**

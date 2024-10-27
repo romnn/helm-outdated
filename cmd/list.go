@@ -28,8 +28,8 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/gosuri/uitable"
+	"github.com/romnn/helm-outdated/pkg/helm"
 	"github.com/spf13/cobra"
-	"github.com/uniknow/helm-outdated/pkg/helm"
 
 	"helm.sh/helm/v3/pkg/cli"
 )

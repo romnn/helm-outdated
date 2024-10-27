@@ -1,4 +1,4 @@
-module github.com/uniknow/helm-outdated
+module github.com/romnn/helm-outdated
 
 go 1.23
 

@@ -10,13 +10,15 @@ fi
 version="$(cat plugin.yaml | grep "version" | cut -d '"' -f 2)"
 echo "Downloading and installing helm-outdated v${version} ..."
 
+repo="https://github.com/romnn/helm-outdated"
+
 url=""
 if [ "$(uname)" = "Darwin" ]; then
-    url="https://github.com/uniknow/helm-outdated/releases/download/${version}/helm-outdated_${version}_darwin_amd64.tar.gz"
+    url="${repo}/releases/download/${version}/helm-outdated_${version}_darwin_amd64.tar.gz"
 elif [ "$(uname)" = "Linux" ] ; then
-    url="https://github.com/uniknow/helm-outdated/releases/download/${version}/helm-outdated_${version}_linux_amd64.tar.gz"
+    url="${repo}/releases/download/${version}/helm-outdated_${version}_linux_amd64.tar.gz"
 else
-    url="https://github.com/uniknow/helm-outdated/releases/download/${version}/helm-outdated_${version}_windows_amd64.tar.gz"
+    url="${repo}/releases/download/${version}/helm-outdated_${version}_windows_amd64.tar.gz"
 fi
 
 echo $url

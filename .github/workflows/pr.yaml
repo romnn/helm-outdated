@@ -2,7 +2,7 @@ name: Pull Request
 
 on:
   pull_request:
-    branches: [ master ]
+    branches: [master]
     types: [opened, synchronize, reopened, edited]
 
 jobs:
@@ -19,8 +19,7 @@ jobs:
       - name: Setup > Install Go
         uses: actions/setup-go@v2
         with:
-          go-version: '^1.15.5' # The Go version to download (if necessary) and use.
+          go-version: "^1.15.5" # The Go version to download (if necessary) and use.
 
       - name: Build > compile code
         run: make build
-

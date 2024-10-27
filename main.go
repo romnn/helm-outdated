@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/uniknow/helm-outdated/cmd"
+	"github.com/romnn/helm-outdated/cmd"
 )
 
 func main() {
